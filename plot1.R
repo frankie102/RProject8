@@ -1,9 +1,13 @@
 
-gh <- read.table("ncc.txt", header=TRUE, sep=";", stringsAsFactors=FALSE, dec=".")
-f <- gh[gh$Date %in% c("1/2/2007","2/2/2007") ,]
+library(dplyr)
 
-#str(subSetData)
-globalActivePower <- as.numeric(f$Global_active_power)
-png("plot1.png", width=480, height=480)
-hist(globalActivePower, col="red", main="Global Active Power", xlab="Global Active Power (kilowatts)")
-dev.off()
+NEI <- readRDS("summarySCC_PM25.rds")
+SCC <- readRDS("Source_Classification_Code.rds")
+
+emissions_by_year <- NEI %>%
+  filter(fips == "24510") %>%
+  group_by(year) %>%
+  summarize(total_emissions = sum(Emissions))
+
+with(emissions_by_year, barplot(total_emissions, names.arg = year, xlab = "Year", ylab = "PM2.5 Emissions (tons)", main = "Total PM2.5 Emissions from Baltimore City Sources"))
+

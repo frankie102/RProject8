@@ -1,15 +1,17 @@
-gh <- read.table("ncc.txt", header=TRUE, sep=";", stringsAsFactors=FALSE, dec=".")
-f <- gh[gh$Date %in% c("1/2/2007","2/2/2007") ,]
 
-#str(subSetData)
-datetime <- strptime(paste(f$Date, f$Time, sep=" "), "%d/%m/%Y %H:%M:%S") 
-subMetering1 <- as.numeric(f$Sub_metering_1)
-subMetering2 <- as.numeric(f$Sub_metering_2)
-subMetering3 <- as.numeric(f$Sub_metering_3)
+library(dplyr)
+library(ggplot2)
 
-png("plot3.png", width=480, height=480)
-plot(datetime, subMetering1, type="l", ylab="Energy Submetering", xlab="")
-lines(datetime, subMetering2, type="l", col="red")
-lines(datetime, subMetering3, type="l", col="blue")
-legend("topright", c("Sub_metering_1", "Sub_metering_2", "Sub_metering_3"), lty=1, lwd=2.5, col=c("black", "red", "blue"))
-dev.off()
+NEI <- readRDS("summarySCC_PM25.rds")
+SCC <- readRDS("Source_Classification_Code.rds")
+
+emissions_by_year <- NEI %>%
+  filter(fips == "24510") %>%
+  group_by(year, type) %>%
+  summarize(total_emissions = sum(Emissions))
+
+emissions_by_year$year <- as.factor(emissions_by_year$year)
+
+ggplot(emissions_by_year, aes(x=year, y=total_emissions)) + geom_bar(stat="identity") + facet_grid(. ~ type) + labs(x="Year", y="PM2.5 Emissions (tons)") + ggtitle("Baltimore City PM2.5 Emissions by Type")
+
+
